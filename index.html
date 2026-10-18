@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Status · Start Formaturas</title>
+<meta name="description" content="Situação dos serviços da Start Formaturas: galeria, escolha de fotos, e-mails.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23b4232a'/%3E%3Cpath d='M22 16l24 16-24 16z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800;900&display=swap">
+<!--
+  Página de status da Start (18/10/2026). Fica FORA da Vercel (GitHub Pages), para continuar no ar
+  mesmo se o sistema cair. Lê dados/status.json, que o vigia (GitHub Actions) atualiza a cada 5 min.
+  Passo a passo: docs/STATUS.md no repositório do sistema.
+-->
+<script>
+const CONFIG = {
+  site: "https://albuns.startfotos.com.br",
+  // repositório desta página (para mostrar a hora da última verificação); deixe "" para não usar
+  repositorio: "formaturasstart-hue/status-start",
+  servicos: [
+    { slug: "site", nome: "Site e painel da equipe", desc: "albuns.startfotos.com.br" },
+    { slug: "galeria", nome: "Galeria do formando", desc: "links de escolha e entrega" },
+    { slug: "fotos", nome: "Fotos", desc: "miniaturas e downloads (Google Drive)" },
+    { slug: "escolha", nome: "Escolha de fotos e aprovação", desc: "marcar fotos, concluir, aprovar amostra" },
+    { slug: "banco", nome: "Banco de dados", desc: "cadastros, escolhas e diagramação" },
+    { slug: "emails", nome: "E-mails", desc: "códigos de acesso, avisos e lembretes" },
+  ],
+  // recados para as quedas (opcional): "AAAA-MM-DD" → texto
+  notas: {
+    // "2026-10-05": "Manutenção da hospedagem. Nenhum dado foi afetado.",
+  },
+};
+</script>
+<style>
+:root {
+  --fundo: #0e0e0d; --superficie: #151514; --superficie-2: #1c1c1b; --borda: #262523; --borda-2: #34322f;
+  --texto: #f4f2ee; --suave: #8f8a82; --medio: #c9c4bb; --marca: #b4232a;
+  --ok: #4fbf7f; --curta: #e9b949; --longa: #e0434d; --sem: #3a3835;
+  --f: Urbanist, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; background: var(--fundo); color: var(--texto); font-family: var(--f); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 2px solid var(--texto); outline-offset: 2px; }
+.pagina { max-width: 860px; margin: 0 auto; padding-block: 28px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header.topo { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.marca { font-weight: 900; font-size: 30px; letter-spacing: .02em; line-height: 1; }
+.marca small { display: block; font-weight: 400; font-size: 10.5px; letter-spacing: .55em; margin-top: 3px; }
+.topo a.voltar { color: var(--medio); font-size: 13.5px; font-weight: 600; text-decoration: none; border: 1px solid var(--borda-2); border-radius: 8px; padding: 8px 12px; }
+.topo a.voltar:hover { border-color: var(--suave); }
+.estado { --c: var(--ok); --c-rgb: 79,191,127; margin-top: 28px; border-radius: 14px; padding: 20px 22px; display: flex; align-items: center; gap: 16px; background: linear-gradient(0deg, rgba(var(--c-rgb),.10), rgba(var(--c-rgb),.10)), var(--superficie); border: 1px solid rgba(var(--c-rgb),.35); transition: background .4s, border-color .4s; }
+.estado.ruim { --c: var(--longa); --c-rgb: 224,67,77; }
+.estado.carregando, .estado.erro { --c: var(--suave); --c-rgb: 143,138,130; }
+.estado .pulso { flex: none; width: 14px; height: 14px; border-radius: 50%; background: var(--c); animation: pulso 2.2s infinite; }
+@keyframes pulso { 0% { box-shadow: 0 0 0 0 rgba(var(--c-rgb),.6); } 70% { box-shadow: 0 0 0 12px rgba(var(--c-rgb),0); } 100% { box-shadow: 0 0 0 0 rgba(var(--c-rgb),0); } }
+.estado h1 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -.01em; text-wrap: balance; }
+.estado p { margin: 2px 0 0; color: var(--medio); font-size: 13.5px; }
+h2.rot { margin: 34px 0 10px; font-size: 12px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: var(--suave); display: flex; justify-content: space-between; gap: 12px; }
+h2.rot span { letter-spacing: .04em; text-transform: none; font-weight: 600; }
+.lista { border: 1px solid var(--borda); border-radius: 14px; background: var(--superficie); overflow: hidden; }
+.comp { padding: 16px 18px 14px; }
+.comp + .comp { border-top: 1px solid var(--borda); }
+.comp .l1 { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.comp h3 { margin: 0; font-size: 15.5px; font-weight: 700; }
+.comp .desc { color: var(--suave); font-size: 12.5px; }
+.comp .st { margin-left: auto; font-size: 13px; font-weight: 700; color: var(--ok); display: inline-flex; align-items: center; gap: 6px; }
+.comp .st.fora { color: #ff8a8f; } .comp .st.pausa { color: var(--suave); }
+.comp .st::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.barras { display: flex; gap: 2px; height: 34px; margin-top: 10px; }
+.barras i { flex: 1 1 0; min-width: 0; border-radius: 2px; background: var(--ok); transition: transform .15s, opacity .15s; transform-origin: bottom; }
+.barras i.curta { background: var(--curta); } .barras i.longa { background: var(--longa); } .barras i.sem { background: var(--sem); }
+.barras i:hover, .barras i:focus { transform: scaleY(1.12); opacity: .85; }
+.rodape-barra { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11.5px; color: var(--suave); font-variant-numeric: tabular-nums; }
+.rodape-barra b { color: var(--medio); font-weight: 700; }
+.legenda { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; font-size: 12px; color: var(--suave); }
+.legenda span { display: inline-flex; align-items: center; gap: 6px; }
+.legenda i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.resumo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.resumo div { border: 1px solid var(--borda); border-radius: 12px; background: var(--superficie); padding: 14px 16px; }
+.resumo b { display: block; font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.resumo span { font-size: 12.5px; color: var(--suave); }
+.quedas { border: 1px solid var(--borda); border-radius: 14px; background: var(--superficie); }
+.queda { display: grid; grid-template-columns: 110px 1fr; gap: 14px; padding: 14px 18px; }
+.queda + .queda { border-top: 1px solid var(--borda); }
+.queda .data { font-weight: 700; font-size: 13.5px; }
+.queda .data small { display: block; color: var(--suave); font-weight: 500; font-variant-numeric: tabular-nums; }
+.queda p { margin: 0; font-size: 14px; }
+.queda .tag { display: inline-block; margin-right: 6px; padding: 1px 8px; border-radius: 99px; font-size: 11.5px; font-weight: 700; background: rgba(233,185,73,.14); color: var(--curta); }
+.queda .tag.longa { background: rgba(224,67,77,.15); color: #ff8a8f; }
+.queda .tag.agora { background: var(--longa); color: #fff; }
+.queda .nota { color: var(--suave); font-size: 13px; margin-top: 2px; }
+.vazio { padding: 18px; color: var(--suave); font-size: 14px; }
+footer { margin-top: 40px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; color: var(--suave); font-size: 12.5px; border-top: 1px solid var(--borda); padding-top: 16px; }
+.dica { position: fixed; z-index: 10; pointer-events: none; background: var(--texto); color: var(--fundo); border-radius: 8px; padding: 7px 10px; font-size: 12px; font-weight: 600; line-height: 1.35; box-shadow: 0 10px 24px -8px rgba(0,0,0,.8); opacity: 0; transform: translateY(4px); transition: opacity .12s, transform .12s; max-width: 220px; }
+.dica.on { opacity: 1; transform: none; }
+.esqueleto .barras i { background: var(--superficie-2); animation: brilho 1.4s infinite; }
+@keyframes brilho { 50% { opacity: .5; } }
+@media (max-width: 560px) { .resumo { grid-template-columns: 1fr; } .queda { grid-template-columns: 1fr; gap: 4px; } .barras { gap: 1px; } .comp .st { margin-left: 0; width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .estado .pulso, .esqueleto .barras i { animation: none; } * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="pagina">
+  <header class="topo">
+    <div class="marca" aria-label="Start Formaturas">ST▶RT<small>formaturas</small></div>
+    <a class="voltar" id="ir-site" href="#">Ir para o site ↗</a>
+  </header>
+
+  <div class="estado carregando" id="estado" role="status" aria-live="polite">
+    <span class="pulso" aria-hidden="true"></span>
+    <div><h1 id="estado-titulo">Verificando os serviços…</h1><p id="estado-sub">Um instante.</p></div>
+  </div>
+
+  <h2 class="rot">Serviços <span>últimos 90 dias</span></h2>
+  <div class="lista esqueleto" id="lista"></div>
+  <div class="legenda" aria-label="Legenda">
+    <span><i style="background:var(--ok)"></i>Sem quedas</span>
+    <span><i style="background:var(--curta)"></i>Queda curta</span>
+    <span><i style="background:var(--longa)"></i>Queda de 30 min ou mais</span>
+    <span><i style="background:var(--sem)"></i>Sem dados</span>
+  </div>
+
+  <h2 class="rot">Resumo dos 90 dias</h2>
+  <div class="resumo" id="resumo"></div>
+
+  <h2 class="rot">Quedas recentes</h2>
+  <div class="quedas" id="quedas"><div class="vazio">Carregando…</div></div>
+
+  <footer>
+    <span>Start Formaturas · Agenda de Álbuns</span>
+    <span>Problemas com seu link? Fale com a Start pelo WhatsApp.</span>
+  </footer>
+</div>
+<div class="dica" id="dica" role="tooltip"></div>
+
+<script>
+(function () {
+  const DIAS = 90, DIA = 86400;
+  const $ = (id) => document.getElementById(id);
+  $("ir-site").href = CONFIG.site;
+  const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]));
+  const tz = { timeZone: "America/Sao_Paulo" };
+  const dataBR = (t) => new Date(t * 1000).toLocaleDateString("pt-BR", { ...tz, day: "2-digit", month: "2-digit", year: "numeric" });
+  const horaBR = (t) => new Date(t * 1000).toLocaleTimeString("pt-BR", { ...tz, hour: "2-digit", minute: "2-digit" });
+  const curtaBR = (t) => new Date(t * 1000).toLocaleDateString("pt-BR", { ...tz, day: "2-digit", month: "short" }).replace(".", "");
+  const isoBR = (t) => new Date(t * 1000).toLocaleDateString("en-CA", tz); // AAAA-MM-DD no horário de Brasília
+  const pct = (n) => n.toFixed(2).replace(".", ",") + "%";
+
+  // início do dia (00:00 de Brasília, UTC-3) em segundos
+  function inicioDoDia(t) { const o = 3 * 3600; return Math.floor((t - o) / DIA) * DIA + o; }
+
+  // esqueleto enquanto carrega
+  $("lista").innerHTML = CONFIG.servicos.map((s) => `<div class="comp"><div class="l1"><h3>${esc(s.nome)}</h3><span class="desc">${esc(s.desc)}</span></div><div class="barras">${"<i></i>".repeat(DIAS)}</div><div class="rodape-barra"><span>&nbsp;</span></div></div>`).join("");
+
+  async function horaDaUltimaVerificacao(padrao) {
+    if (!CONFIG.repositorio) return padrao;
+    try {
+      const r = await fetch(`https://api.github.com/repos/${CONFIG.repositorio}/actions/runs?per_page=1&status=success`);
+      const j = await r.json();
+      const t = j.workflow_runs && j.workflow_runs[0] && j.workflow_runs[0].updated_at;
+      return t ? Math.floor(Date.parse(t) / 1000) : padrao;
+    } catch { return padrao; }
+  }
+
+  async function carregar() {
+    try {
+      const r = await fetch(`dados/status.json?t=${Date.now()}`, { cache: "no-store" });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const dados = await r.json();
+      const padrao = dados.ultima_verificacao ? Math.floor(Date.parse(dados.ultima_verificacao) / 1000) : null;
+      desenhar(dados, await horaDaUltimaVerificacao(padrao));
+    } catch (e) {
+      $("estado").className = "estado erro";
+      $("estado-titulo").textContent = "Não foi possível carregar o status agora";
+      $("estado-sub").textContent = "Tente de novo em alguns minutos.";
+      console.warn("[status]", e);
+    }
+  }
+
+  function desenhar(dados, verificadoEm) {
+    const agora = Math.floor(Date.now() / 1000);
+    const hoje0 = inicioDoDia(agora);
+    const inicio = dados.inicio ? Math.floor(Date.parse(dados.inicio) / 1000) : agora;
+    const t = (iso) => Math.floor(Date.parse(iso) / 1000);
+    const linhas = [];
+    const quedas = [];
+    const foraAgora = [];
+    const diasRuins = new Set(), contCurta = { n: 0 }, contLonga = { n: 0 };
+    const janela0 = Math.max(inicio, hoje0 - (DIAS - 1) * DIA);
+
+    CONFIG.servicos.forEach((s) => {
+      const downs = (dados.incidentes || []).filter((i) => i.servico === s.slug).map((i) => ({ ini: t(i.inicio), fim: i.fim ? t(i.fim) : agora, aberto: !i.fim, motivo: i.motivo || "Sem resposta do servidor" }));
+      const barras = [];
+      let segTotal = 0;
+      for (let d = DIAS - 1; d >= 0; d--) {
+        const i0 = hoje0 - d * DIA, i1 = i0 + DIA;
+        if (i1 <= inicio) { barras.push({ cls: "sem", t: i0 }); continue; }
+        let seg = 0;
+        for (const q of downs) seg += Math.max(0, Math.min(q.fim, i1) - Math.max(q.ini, i0));
+        segTotal += seg;
+        const min = Math.round(seg / 60);
+        const total = Math.min(i1, agora) - Math.max(i0, inicio);
+        const up = total > 0 ? Math.max(0, 100 - (seg / total) * 100) : 100;
+        const cls = min >= 30 ? "longa" : min > 0 ? "curta" : "";
+        if (cls) diasRuins.add(i0);
+        barras.push({ cls, t: i0, min, up });
+      }
+      downs.forEach((q) => quedas.push({ ...q, servico: s.nome }));
+      const st = (dados.estado && dados.estado[s.slug]) === "fora" ? "fora" : "ok";
+      if (st === "fora") foraAgora.push(s.nome);
+      const totalJanela = Math.max(1, agora - janela0);
+      linhas.push({ s, barras, st, ratio: Math.max(0, 100 - (segTotal / totalJanela) * 100) });
+    });
+
+    // ---------- faixa do topo ----------
+    const est = $("estado");
+    if (foraAgora.length) {
+      est.className = "estado ruim";
+      $("estado-titulo").textContent = foraAgora.length === 1 ? `Instabilidade: ${foraAgora[0]}` : `Instabilidade em ${foraAgora.length} serviços`;
+    } else {
+      est.className = "estado";
+      $("estado-titulo").textContent = "Todos os serviços operando";
+    }
+    $("estado-sub").textContent = verificadoEm ? `Última verificação às ${horaBR(verificadoEm)} · verificado a cada 5 minutos` : "Verificado a cada 5 minutos";
+
+    // ---------- serviços ----------
+    $("lista").classList.remove("esqueleto");
+    $("lista").innerHTML = linhas.map((l) => {
+      const rot = l.st === "fora" ? "Fora do ar" : l.st === "pausa" ? "Em pausa" : "Operando";
+      const bs = l.barras.map((b) => {
+        const txt = b.cls === "sem" ? `${dataBR(b.t)}|Sem dados|` : `${dataBR(b.t)}|${pct(b.up)} no ar|${b.min ? b.min + " min fora" : "Sem quedas"}`;
+        return `<i class="${b.cls}" tabindex="0" data-dica="${txt}"></i>`;
+      }).join("");
+      return `<div class="comp"><div class="l1"><h3>${esc(l.s.nome)}</h3><span class="desc">${esc(l.s.desc)}</span><span class="st ${l.st === "ok" ? "" : l.st}">${rot}</span></div>
+        <div class="barras" aria-label="Histórico de 90 dias de ${esc(l.s.nome)}">${bs}</div>
+        <div class="rodape-barra"><span>${curtaBR(hoje0 - (DIAS - 1) * DIA)}</span><span><b>${pct(l.ratio)}</b> no ar</span><span>hoje</span></div></div>`;
+    }).join("");
+
+    // ---------- quedas (junta as que começaram juntas, até 10 min de diferença) ----------
+    quedas.sort((a, b) => b.ini - a.ini);
+    const grupos = [];
+    for (const q of quedas) {
+      const g = grupos.find((x) => Math.abs(x.ini - q.ini) <= 600);
+      if (g) { if (!g.servicos.includes(q.servico)) g.servicos.push(q.servico); g.fim = Math.max(g.fim, q.fim); g.aberto = g.aberto || q.aberto; }
+      else grupos.push({ ini: q.ini, fim: q.fim, aberto: q.aberto, servicos: [q.servico], motivo: q.motivo });
+    }
+    const recentes = grupos.filter((g) => g.ini > hoje0 - DIAS * DIA);
+    recentes.forEach((g) => { const m = Math.round((g.fim - g.ini) / 60); if (m >= 30) contLonga.n++; else contCurta.n++; });
+    $("quedas").innerHTML = recentes.length ? recentes.slice(0, 15).map((g) => {
+      const min = Math.max(1, Math.round((g.fim - g.ini) / 60));
+      const nota = CONFIG.notas[isoBR(g.ini)] || g.motivo;
+      return `<div class="queda"><div class="data">${dataBR(g.ini)}<small>${horaBR(g.ini)} – ${g.aberto ? "agora" : horaBR(g.fim)}</small></div>
+        <div><p><span class="tag ${g.aberto ? "agora" : min >= 30 ? "longa" : ""}">${g.aberto ? "em andamento" : min + " min"}</span>${g.servicos.map(esc).join(", ")}</p><p class="nota">${esc(nota)}</p></div></div>`;
+    }).join("") : `<div class="vazio">Nenhuma queda nos últimos 90 dias. 🎉</div>`;
+
+    const diasComDados = linhas.reduce((mx, l) => Math.max(mx, l.barras.filter((b) => b.cls !== "sem").length), 0);
+    $("resumo").innerHTML = `
+      <div><b>${Math.max(0, diasComDados - diasRuins.size)}</b><span>dias sem nenhuma queda</span></div>
+      <div><b>${contCurta.n}</b><span>quedas curtas (menos de 30 min)</span></div>
+      <div><b>${contLonga.n}</b><span>quedas de 30 min ou mais</span></div>`;
+  }
+
+  // ---------- dica ao passar o mouse / tocar ----------
+  const dica = $("dica");
+  function mostrar(el) {
+    const [d, a, b] = el.dataset.dica.split("|");
+    dica.innerHTML = `<b>${d}</b><br>${a}${b ? "<br>" + b : ""}`;
+    const r = el.getBoundingClientRect();
+    dica.classList.add("on");
+    const w = dica.offsetWidth;
+    dica.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + "px";
+    dica.style.top = (r.top - dica.offsetHeight - 8) + "px";
+  }
+  const lista = $("lista");
+  lista.addEventListener("mouseover", (e) => { const i = e.target.closest("[data-dica]"); if (i) mostrar(i); });
+  lista.addEventListener("focusin", (e) => { const i = e.target.closest("[data-dica]"); if (i) mostrar(i); });
+  lista.addEventListener("mouseout", () => dica.classList.remove("on"));
+  lista.addEventListener("focusout", () => dica.classList.remove("on"));
+  addEventListener("scroll", () => dica.classList.remove("on"), { passive: true });
+
+  carregar();
+  setInterval(carregar, 5 * 60 * 1000); // atualiza sozinho a cada 5 min
+})();
+</script>
+</body>
+</html>
