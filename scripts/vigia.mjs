@@ -13,6 +13,8 @@ export const SERVICOS = [
   { slug: "banco", nome: "Banco de dados", url: `${SITE}/api/saude?s=banco` },
   { slug: "emails", nome: "E-mails", url: `${SITE}/api/saude?s=emails` },
 ];
+// Entregador de fotos na VPS (19/10/2026): só é vigiado quando a variável VIGIA_ENTREGADOR (Settings → Secrets and variables → Actions → Variables) tem o endereço, ex.: https://fotos.startfotos.com.br
+if (process.env.VIGIA_ENTREGADOR) SERVICOS.push({ slug: "entregador", nome: "Entregador de fotos (VPS)", url: `${process.env.VIGIA_ENTREGADOR.replace(/\/+$/, "")}/saude` });
 const ARQ = new URL("../dados/status.json", import.meta.url);
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -86,6 +88,7 @@ for (const [s, r] of resultados) {
   const antes = dados.estado[s.slug] ?? "ok";
   const depois = r.ok ? "ok" : "fora";
   console.log(`[vigia] ${s.nome}: ${depois}${r.motivo ? ` (${r.motivo})` : ""}`);
+  dados.estado[s.slug] = depois; // sempre gravado (a página só mostra serviços opcionais que já têm estado)
   if (antes === depois) continue;
   mudou = true;
   dados.estado[s.slug] = depois;
