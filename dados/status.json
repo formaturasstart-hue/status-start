@@ -1,6 +1,6 @@
 {
   "inicio": "2026-10-19T00:59:48.644Z",
-  "ultima_verificacao": "2026-10-20T23:40:21.173Z",
+  "ultima_verificacao": "2026-10-20T23:55:19.589Z",
   "estado": {
     "galeria": "ok",
     "site": "ok",
@@ -8,7 +8,7 @@
     "escolha": "ok",
     "banco": "ok",
     "emails": "ok",
-    "entregador": "ok"
+    "entregador": "fora"
   },
   "incidentes": [
     {
@@ -16,6 +16,12 @@
       "inicio": "2026-10-19T17:33:44.895Z",
       "fim": "2026-10-19T21:43:27.062Z",
       "motivo": "Erro no servidor (503)"
+    },
+    {
+      "servico": "entregador",
+      "inicio": "2026-10-20T23:55:19.589Z",
+      "fim": null,
+      "motivo": "Sem resposta do servidor"
     }
   ]
 }
