@@ -31,6 +31,8 @@ jobs:
           EMAIL_REMETENTE: ${{ secrets.EMAIL_REMETENTE }}
           ALERTA_EMAIL: ${{ secrets.ALERTA_EMAIL }}
           VIGIA_TESTE: ${{ inputs.teste }}
+          VIGIA_ENTREGADOR: ${{ vars.VIGIA_ENTREGADOR }}
+          VIGIA_ATAS: ${{ vars.VIGIA_ATAS }}
         run: node scripts/vigia.mjs
       - name: Salvar histórico
         run: |

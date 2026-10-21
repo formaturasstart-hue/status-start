@@ -15,6 +15,9 @@ export const SERVICOS = [
 ];
 // Entregador de fotos na VPS (19/10/2026): só é vigiado quando a variável VIGIA_ENTREGADOR (Settings → Secrets and variables → Actions → Variables) tem o endereço, ex.: https://fotos.startfotos.com.br
 if (process.env.VIGIA_ENTREGADOR) SERVICOS.push({ slug: "entregador", nome: "Entregador de fotos (VPS)", url: `${process.env.VIGIA_ENTREGADOR.replace(/\/+$/, "")}/saude` });
+// Start Atas — monitor dos grupos de WhatsApp das turmas (21/10/2026). Vigiado quando a variável VIGIA_ATAS tem o endereço,
+// ex.: https://atas.startfotos.com.br — o /saude responde 503 quando o WhatsApp desconecta, então o alerta avisa isso também.
+if (process.env.VIGIA_ATAS) SERVICOS.push({ slug: "atas", nome: "Monitor dos grupos (WhatsApp)", url: `${process.env.VIGIA_ATAS.replace(/\/+$/, "")}/saude` });
 const ARQ = new URL("../dados/status.json", import.meta.url);
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 
