@@ -1,6 +1,6 @@
 {
   "inicio": "2026-10-19T00:59:48.644Z",
-  "ultima_verificacao": "2026-10-20T23:55:19.589Z",
+  "ultima_verificacao": "2026-10-21T00:00:32.188Z",
   "estado": {
     "galeria": "ok",
     "site": "ok",
@@ -8,7 +8,7 @@
     "escolha": "ok",
     "banco": "ok",
     "emails": "ok",
-    "entregador": "fora"
+    "entregador": "ok"
   },
   "incidentes": [
     {
@@ -20,7 +20,7 @@
     {
       "servico": "entregador",
       "inicio": "2026-10-20T23:55:19.589Z",
-      "fim": null,
+      "fim": "2026-10-21T00:00:32.188Z",
       "motivo": "Sem resposta do servidor"
     }
   ]
