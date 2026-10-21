@@ -1,14 +1,14 @@
 {
   "inicio": "2026-10-19T00:59:48.644Z",
-  "ultima_verificacao": "2026-10-21T17:00:37.391Z",
+  "ultima_verificacao": "2026-10-21T17:20:22.122Z",
   "estado": {
-    "galeria": "ok",
+    "galeria": "fora",
     "site": "ok",
-    "fotos": "ok",
+    "fotos": "fora",
     "escolha": "ok",
     "banco": "ok",
     "emails": "ok",
-    "entregador": "ok",
+    "entregador": "fora",
     "atas": "ok"
   },
   "incidentes": [
@@ -149,6 +149,24 @@
       "inicio": "2026-10-21T15:55:19.400Z",
       "fim": "2026-10-21T16:00:33.602Z",
       "motivo": "Sem resposta do servidor"
+    },
+    {
+      "servico": "galeria",
+      "inicio": "2026-10-21T17:20:22.122Z",
+      "fim": null,
+      "motivo": "Erro no servidor (503)"
+    },
+    {
+      "servico": "fotos",
+      "inicio": "2026-10-21T17:20:22.122Z",
+      "fim": null,
+      "motivo": "Erro no servidor (503)"
+    },
+    {
+      "servico": "entregador",
+      "inicio": "2026-10-21T17:20:22.122Z",
+      "fim": null,
+      "motivo": "Erro no servidor (503)"
     }
   ]
 }
