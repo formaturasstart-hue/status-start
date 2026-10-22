@@ -1,8 +1,8 @@
 {
   "inicio": "2026-10-19T00:59:48.644Z",
-  "ultima_verificacao": "2026-10-22T17:35:21.537Z",
+  "ultima_verificacao": "2026-10-22T17:40:23.512Z",
   "estado": {
-    "galeria": "fora",
+    "galeria": "ok",
     "site": "ok",
     "fotos": "ok",
     "escolha": "ok",
@@ -333,7 +333,7 @@
     {
       "servico": "galeria",
       "inicio": "2026-10-22T17:35:21.537Z",
-      "fim": null,
+      "fim": "2026-10-22T17:40:23.512Z",
       "motivo": "Erro no servidor (503)"
     }
   ]
