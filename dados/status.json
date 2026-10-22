@@ -1,6 +1,6 @@
 {
   "inicio": "2026-10-19T00:59:48.644Z",
-  "ultima_verificacao": "2026-10-22T20:45:21.008Z",
+  "ultima_verificacao": "2026-10-22T20:50:22.173Z",
   "estado": {
     "galeria": "ok",
     "site": "ok",
@@ -8,8 +8,8 @@
     "escolha": "ok",
     "banco": "ok",
     "emails": "ok",
-    "entregador": "fora",
-    "atas": "fora"
+    "entregador": "ok",
+    "atas": "ok"
   },
   "incidentes": [
     {
@@ -351,13 +351,13 @@
     {
       "servico": "entregador",
       "inicio": "2026-10-22T20:45:21.008Z",
-      "fim": null,
+      "fim": "2026-10-22T20:50:22.173Z",
       "motivo": "Sem resposta do servidor"
     },
     {
       "servico": "atas",
       "inicio": "2026-10-22T20:45:21.008Z",
-      "fim": null,
+      "fim": "2026-10-22T20:50:22.173Z",
       "motivo": "Sem resposta do servidor"
     }
   ]
