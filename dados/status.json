@@ -1,15 +1,15 @@
 {
   "inicio": "2026-10-19T00:59:48.644Z",
-  "ultima_verificacao": "2026-10-23T18:40:24.105Z",
+  "ultima_verificacao": "2026-10-23T18:55:20.560Z",
   "estado": {
-    "galeria": "fora",
+    "galeria": "ok",
     "site": "ok",
-    "fotos": "fora",
+    "fotos": "ok",
     "escolha": "ok",
     "banco": "ok",
     "emails": "ok",
-    "entregador": "fora",
-    "atas": "fora"
+    "entregador": "ok",
+    "atas": "ok"
   },
   "incidentes": [
     {
@@ -429,25 +429,25 @@
     {
       "servico": "galeria",
       "inicio": "2026-10-23T18:35:20.951Z",
-      "fim": null,
+      "fim": "2026-10-23T18:55:20.560Z",
       "motivo": "Erro no servidor (503)"
     },
     {
       "servico": "fotos",
       "inicio": "2026-10-23T18:35:20.951Z",
-      "fim": null,
+      "fim": "2026-10-23T18:55:20.560Z",
       "motivo": "Erro no servidor (503)"
     },
     {
       "servico": "entregador",
       "inicio": "2026-10-23T18:35:20.951Z",
-      "fim": null,
+      "fim": "2026-10-23T18:55:20.560Z",
       "motivo": "Sem resposta: tempo esgotado na conexão (UND_ERR_CONNECT_TIMEOUT)"
     },
     {
       "servico": "atas",
       "inicio": "2026-10-23T18:35:20.951Z",
-      "fim": null,
+      "fim": "2026-10-23T18:55:20.560Z",
       "motivo": "Sem resposta: tempo esgotado na conexão (UND_ERR_CONNECT_TIMEOUT)"
     }
   ],
