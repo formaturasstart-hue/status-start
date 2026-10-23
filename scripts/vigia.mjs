@@ -1,6 +1,12 @@
 // Vigia da Start — roda no GitHub Actions a cada 5 min (ver .github/workflows/vigia.yml).
 // Testa cada serviço (até 3 tentativas, para não dar alarme falso), grava mudanças em
 // dados/status.json e manda e-mail pela Resend quando um serviço cai ou volta.
+//
+// 23/10/2026 — alarmes falsos: o caminho GitHub (EUA) → VPS Hostinger dava "sem resposta" por
+// 30–60 s, umas 15× por dia, com o servidor funcionando normalmente (o contador do entregador nunca
+// reiniciou). Agora: (1) um serviço só é dado como FORA depois de falhar em DUAS rodadas seguidas
+// (10 min) — a primeira falha fica como "suspeita" e não manda e-mail; (2) o motivo registra o tipo
+// do erro (DNS, conexão recusada, conexão caiu, tempo esgotado) para diagnóstico.
 import { readFile, writeFile } from "node:fs/promises";
 
 const SITE = process.env.VIGIA_SITE || "https://albuns.startfotos.com.br";
@@ -13,13 +19,25 @@ export const SERVICOS = [
   { slug: "banco", nome: "Banco de dados", url: `${SITE}/api/saude?s=banco` },
   { slug: "emails", nome: "E-mails", url: `${SITE}/api/saude?s=emails` },
 ];
-// Entregador de fotos na VPS (19/10/2026): só é vigiado quando a variável VIGIA_ENTREGADOR (Settings → Secrets and variables → Actions → Variables) tem o endereço, ex.: https://fotos.startfotos.com.br
+// Entregador de fotos na VPS (19/10/2026): só é vigiado quando a variável VIGIA_ENTREGADOR
+// (Settings → Secrets and variables → Actions → Variables) tem o endereço, ex.: https://fotos.startfotos.com.br
 if (process.env.VIGIA_ENTREGADOR) SERVICOS.push({ slug: "entregador", nome: "Entregador de fotos (VPS)", url: `${process.env.VIGIA_ENTREGADOR.replace(/\/+$/, "")}/saude` });
 // Start Atas — monitor dos grupos de WhatsApp das turmas (21/10/2026). Vigiado quando a variável VIGIA_ATAS tem o endereço,
 // ex.: https://atas.startfotos.com.br — o /saude responde 503 quando o WhatsApp desconecta, então o alerta avisa isso também.
 if (process.env.VIGIA_ATAS) SERVICOS.push({ slug: "atas", nome: "Monitor dos grupos (WhatsApp)", url: `${process.env.VIGIA_ATAS.replace(/\/+$/, "")}/saude` });
 const ARQ = new URL("../dados/status.json", import.meta.url);
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function motivoDoErro(e) {
+  if (e?.name === "TimeoutError") return "Sem resposta do servidor (30 s)";
+  const code = e?.cause?.code || e?.code || "";
+  if (code === "ENOTFOUND" || code === "EAI_AGAIN") return `Sem resposta: DNS não resolveu (${code})`;
+  if (code === "ECONNREFUSED") return "Sem resposta: conexão recusada (ECONNREFUSED)";
+  if (code === "ECONNRESET" || code === "EPIPE" || code === "UND_ERR_SOCKET") return `Sem resposta: conexão caiu (${code})`;
+  if (code === "ETIMEDOUT" || code === "UND_ERR_CONNECT_TIMEOUT") return `Sem resposta: tempo esgotado na conexão (${code})`;
+  if (/CERT|TLS|SSL/i.test(code) || /certificate/i.test(e?.message ?? "")) return `Sem resposta: certificado/TLS (${code || e?.message})`;
+  return `Sem resposta do servidor${code ? ` (${code})` : ""}`;
+}
 
 async function testar(s) {
   let ultimo = "";
@@ -29,7 +47,7 @@ async function testar(s) {
       if (r.ok) return { ok: true };
       ultimo = r.status >= 500 ? `Erro no servidor (${r.status})` : `Página respondeu com erro (${r.status})`;
     } catch (e) {
-      ultimo = e?.name === "TimeoutError" ? "Sem resposta do servidor (30 s)" : "Sem resposta do servidor";
+      ultimo = motivoDoErro(e);
     }
     if (t < 3) await espera(15_000);
   }
@@ -56,7 +74,7 @@ async function avisar(caiu, servico, linhas, outros) {
     <div style="background:#0e0e0d;color:#f4f2ee;padding:16px 22px;font-weight:900;font-size:20px;letter-spacing:.02em">START <span style="font-weight:400;font-size:11px;letter-spacing:.3em;color:#8f8a82">ALERTA AUTOMÁTICO</span></div>
     <div style="background:${caiu ? "#b4232a" : "#1f8a4c"};color:#fff;padding:13px 22px;font-weight:700;font-size:15px">${caiu ? "🔴" : "🟢"} ${esc(servico)} ${caiu ? "está fora do ar" : "voltou"}</div>
     <div style="padding:18px 22px 22px;font-size:14px;line-height:1.5">
-      <p style="margin:0 0 10px">${caiu ? "O vigia testou 3 vezes e não teve resposta. Ele continua testando a cada 5 minutos e avisa quando voltar." : "Tudo normal de novo."}</p>
+      <p style="margin:0 0 10px">${caiu ? "O vigia testou em duas rodadas seguidas (10 minutos, 3 tentativas em cada) e não teve resposta. Ele continua testando a cada 5 minutos e avisa quando voltar." : "Tudo normal de novo."}</p>
       <table style="width:100%;border-collapse:collapse;margin:10px 0 16px;font-size:13.5px">
         ${[...linhas, ...(outros ? [["Outros serviços", outros]] : [])].map(([k, v]) => `<tr><td style="padding:7px 0;border-bottom:1px solid #e6e2da;color:#6e6961;width:42%">${esc(k)}</td><td style="padding:7px 0;border-bottom:1px solid #e6e2da">${esc(v)}</td></tr>`).join("")}
       </table>
@@ -83,23 +101,42 @@ const agora = new Date().toISOString();
 dados.inicio ??= agora;
 dados.estado ??= {};
 dados.incidentes ??= [];
+dados.suspeitas ??= {}; // slug → { desde, motivo }: falhou UMA rodada; vira "fora" se falhar de novo
+dados.oscilacoes ??= []; // falhas de uma rodada só (não viraram incidente) — para diagnóstico, ~7 dias
 let mudou = false;
 
 const resultados = await Promise.all(SERVICOS.map(async (s) => [s, await testar(s)]));
 const foraAgora = resultados.filter(([, r]) => !r.ok).map(([s]) => s.nome);
 for (const [s, r] of resultados) {
   const antes = dados.estado[s.slug] ?? "ok";
-  const depois = r.ok ? "ok" : "fora";
+  let depois = r.ok ? "ok" : "fora";
+  const suspeita = dados.suspeitas[s.slug];
+  // Primeira falha de um serviço que estava ok: só marca suspeita (confirma na próxima rodada, em 5 min)
+  if (!r.ok && antes === "ok" && !suspeita) {
+    dados.suspeitas[s.slug] = { desde: agora, motivo: r.motivo };
+    mudou = true;
+    console.log(`[vigia] ${s.nome}: SUSPEITA (${r.motivo}) — confirma na próxima rodada`);
+    continue;
+  }
+  if (r.ok && suspeita) {
+    // oscilou uma rodada só: não foi queda; guarda para diagnóstico e segue
+    delete dados.suspeitas[s.slug];
+    dados.oscilacoes.push({ servico: s.slug, em: suspeita.desde, motivo: suspeita.motivo });
+    mudou = true;
+    console.log(`[vigia] ${s.nome}: ok de novo (oscilação de uma rodada: ${suspeita.motivo})`);
+    depois = "ok";
+  }
+  const inicioQueda = suspeita?.desde ?? agora; // a queda conta desde a primeira falha
+  if (!r.ok && suspeita) delete dados.suspeitas[s.slug];
   console.log(`[vigia] ${s.nome}: ${depois}${r.motivo ? ` (${r.motivo})` : ""}`);
   dados.estado[s.slug] = depois; // sempre gravado (a página só mostra serviços opcionais que já têm estado)
   if (antes === depois) continue;
   mudou = true;
-  dados.estado[s.slug] = depois;
   const outros = SERVICOS.filter((x) => x.slug !== s.slug).map((x) => x.nome);
   if (depois === "fora") {
-    dados.incidentes.push({ servico: s.slug, inicio: agora, fim: null, motivo: r.motivo });
+    dados.incidentes.push({ servico: s.slug, inicio: inicioQueda, fim: null, motivo: r.motivo });
     const ok = outros.filter((n) => !foraAgora.includes(n));
-    await avisar(true, s.nome, [["Serviço", s.nome], ["Desde", hora(agora)], ["Motivo", r.motivo]], ok.length === outros.length ? "todos operando" : `também fora: ${outros.filter((n) => foraAgora.includes(n)).join(", ")}`);
+    await avisar(true, s.nome, [["Serviço", s.nome], ["Desde", hora(inicioQueda)], ["Motivo", r.motivo], ["Confirmação", "falhou em 2 rodadas seguidas (10 min)"]], ok.length === outros.length ? "todos operando" : `também fora: ${outros.filter((n) => foraAgora.includes(n)).join(", ")}`);
   } else {
     const inc = [...dados.incidentes].reverse().find((i) => i.servico === s.slug && !i.fim);
     if (inc) inc.fim = agora;
@@ -108,11 +145,15 @@ for (const [s, r] of resultados) {
   }
 }
 
-// guarda só ~100 dias de quedas
+// guarda só ~100 dias de quedas (e ~7 dias de oscilações)
 const limite = Date.now() - 100 * 86400_000;
 const antesN = dados.incidentes.length;
 dados.incidentes = dados.incidentes.filter((i) => !i.fim || Date.parse(i.fim) > limite);
 if (dados.incidentes.length !== antesN) mudou = true;
+const limiteOsc = Date.now() - 7 * 86400_000;
+const antesO = dados.oscilacoes.length;
+dados.oscilacoes = dados.oscilacoes.filter((o) => Date.parse(o.em) > limiteOsc);
+if (dados.oscilacoes.length !== antesO) mudou = true;
 
 // "última verificação": grava a cada mudança ou, no máximo, uma vez por hora (para não encher o histórico)
 const ultima = dados.ultima_verificacao ? Date.parse(dados.ultima_verificacao) : 0;
