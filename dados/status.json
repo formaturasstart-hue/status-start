@@ -1,6 +1,6 @@
 {
   "inicio": "2026-10-19T00:59:48.644Z",
-  "ultima_verificacao": "2026-10-28T19:15:23.236Z",
+  "ultima_verificacao": "2026-10-28T19:20:25.631Z",
   "estado": {
     "galeria": "ok",
     "site": "ok",
@@ -475,12 +475,7 @@
       "motivo": "Sem resposta: tempo esgotado na conexão (UND_ERR_CONNECT_TIMEOUT)"
     }
   ],
-  "suspeitas": {
-    "galeria": {
-      "desde": "2026-10-28T19:15:23.236Z",
-      "motivo": "Erro no servidor (503)"
-    }
-  },
+  "suspeitas": {},
   "oscilacoes": [
     {
       "servico": "entregador",
@@ -935,6 +930,11 @@
     {
       "servico": "fotos",
       "em": "2026-10-28T16:15:23.232Z",
+      "motivo": "Erro no servidor (503)"
+    },
+    {
+      "servico": "galeria",
+      "em": "2026-10-28T19:15:23.236Z",
       "motivo": "Erro no servidor (503)"
     }
   ]
