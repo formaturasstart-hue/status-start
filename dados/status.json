@@ -1,10 +1,10 @@
 {
   "inicio": "2026-10-19T00:59:48.644Z",
-  "ultima_verificacao": "2026-11-01T01:00:27.789Z",
+  "ultima_verificacao": "2026-11-01T01:05:18.732Z",
   "estado": {
     "galeria": "ok",
     "site": "ok",
-    "fotos": "ok",
+    "fotos": "fora",
     "escolha": "ok",
     "banco": "ok",
     "emails": "ok",
@@ -473,11 +473,17 @@
       "inicio": "2026-10-23T19:05:19.029Z",
       "fim": "2026-10-23T19:15:20.697Z",
       "motivo": "Sem resposta: tempo esgotado na conexão (UND_ERR_CONNECT_TIMEOUT)"
+    },
+    {
+      "servico": "fotos",
+      "inicio": "2026-11-01T01:00:27.789Z",
+      "fim": null,
+      "motivo": "Erro no servidor (503)"
     }
   ],
   "suspeitas": {
-    "fotos": {
-      "desde": "2026-11-01T01:00:27.789Z",
+    "galeria": {
+      "desde": "2026-11-01T01:05:18.732Z",
       "motivo": "Erro no servidor (503)"
     }
   },
