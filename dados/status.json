@@ -1,6 +1,6 @@
 {
   "inicio": "2026-10-19T00:59:48.644Z",
-  "ultima_verificacao": "2026-11-02T14:00:32.671Z",
+  "ultima_verificacao": "2026-11-02T14:05:20.873Z",
   "estado": {
     "galeria": "ok",
     "site": "ok",
@@ -483,11 +483,6 @@
   ],
   "suspeitas": {},
   "oscilacoes": [
-    {
-      "servico": "emails",
-      "em": "2026-10-26T14:00:35.558Z",
-      "motivo": "Erro no servidor (503)"
-    },
     {
       "servico": "entregador",
       "em": "2026-10-26T15:30:29.134Z",
