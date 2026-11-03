@@ -1,6 +1,6 @@
 {
   "inicio": "2026-10-19T00:59:48.644Z",
-  "ultima_verificacao": "2026-11-03T07:05:34.476Z",
+  "ultima_verificacao": "2026-11-03T08:00:31.152Z",
   "estado": {
     "galeria": "ok",
     "site": "ok",
@@ -481,7 +481,16 @@
       "motivo": "Erro no servidor (503)"
     }
   ],
-  "suspeitas": {},
+  "suspeitas": {
+    "entregador": {
+      "desde": "2026-11-03T08:00:31.152Z",
+      "motivo": "Sem resposta: tempo esgotado na conexão (UND_ERR_CONNECT_TIMEOUT)"
+    },
+    "atas": {
+      "desde": "2026-11-03T08:00:31.152Z",
+      "motivo": "Sem resposta: tempo esgotado na conexão (UND_ERR_CONNECT_TIMEOUT)"
+    }
+  },
   "oscilacoes": [
     {
       "servico": "entregador",
