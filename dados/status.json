@@ -1,6 +1,6 @@
 {
   "inicio": "2026-10-19T00:59:48.644Z",
-  "ultima_verificacao": "2026-11-04T16:55:21.980Z",
+  "ultima_verificacao": "2026-11-04T17:00:31.550Z",
   "estado": {
     "galeria": "ok",
     "site": "ok",
@@ -481,16 +481,7 @@
       "motivo": "Erro no servidor (503)"
     }
   ],
-  "suspeitas": {
-    "entregador": {
-      "desde": "2026-11-04T16:55:21.980Z",
-      "motivo": "Sem resposta: tempo esgotado na conexão (UND_ERR_CONNECT_TIMEOUT)"
-    },
-    "atas": {
-      "desde": "2026-11-04T16:55:21.980Z",
-      "motivo": "Sem resposta: tempo esgotado na conexão (UND_ERR_CONNECT_TIMEOUT)"
-    }
-  },
+  "suspeitas": {},
   "oscilacoes": [
     {
       "servico": "galeria",
@@ -810,6 +801,16 @@
     {
       "servico": "atas",
       "em": "2026-11-04T00:25:19.132Z",
+      "motivo": "Sem resposta: tempo esgotado na conexão (UND_ERR_CONNECT_TIMEOUT)"
+    },
+    {
+      "servico": "entregador",
+      "em": "2026-11-04T16:55:21.980Z",
+      "motivo": "Sem resposta: tempo esgotado na conexão (UND_ERR_CONNECT_TIMEOUT)"
+    },
+    {
+      "servico": "atas",
+      "em": "2026-11-04T16:55:21.980Z",
       "motivo": "Sem resposta: tempo esgotado na conexão (UND_ERR_CONNECT_TIMEOUT)"
     }
   ]
