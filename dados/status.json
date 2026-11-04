@@ -1,6 +1,6 @@
 {
   "inicio": "2026-10-19T00:59:48.644Z",
-  "ultima_verificacao": "2026-11-04T21:15:21.550Z",
+  "ultima_verificacao": "2026-11-04T21:40:39.177Z",
   "estado": {
     "galeria": "ok",
     "site": "ok",
@@ -481,7 +481,16 @@
       "motivo": "Erro no servidor (503)"
     }
   ],
-  "suspeitas": {},
+  "suspeitas": {
+    "galeria": {
+      "desde": "2026-11-04T21:40:39.177Z",
+      "motivo": "Erro no servidor (503)"
+    },
+    "fotos": {
+      "desde": "2026-11-04T21:40:39.177Z",
+      "motivo": "Erro no servidor (503)"
+    }
+  },
   "oscilacoes": [
     {
       "servico": "entregador",
