@@ -25,6 +25,11 @@ if (process.env.VIGIA_ENTREGADOR) SERVICOS.push({ slug: "entregador", nome: "Ent
 // Start Atas — monitor dos grupos de WhatsApp das turmas (21/10/2026). Vigiado quando a variável VIGIA_ATAS tem o endereço,
 // ex.: https://atas.startfotos.com.br — o /saude responde 503 quando o WhatsApp desconecta, então o alerta avisa isso também.
 if (process.env.VIGIA_ATAS) SERVICOS.push({ slug: "atas", nome: "Monitor dos grupos (WhatsApp)", url: `${process.env.VIGIA_ATAS.replace(/\/+$/, "")}/saude` });
+// Entregas (13/11/2026): o separador da VPS (lê as fotos e reconhece os rostos) e a vitrine (miniaturas com logo).
+// O Start Álbuns responde por eles em /api/saude. Enquanto a versão dele não tiver esses testes (resposta 400),
+// o vigia simplesmente pula — não vira queda nem e-mail.
+SERVICOS.push({ slug: "separador", nome: "Leitura e reconhecimento das fotos (VPS)", url: `${SITE}/api/saude?s=separador`, pula400: true });
+SERVICOS.push({ slug: "vitrine", nome: "Vitrine das entregas (VPS)", url: `${SITE}/api/saude?s=vitrine`, pula400: true });
 const ARQ = new URL("../dados/status.json", import.meta.url);
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -45,6 +50,7 @@ async function testar(s) {
     try {
       const r = await fetch(s.url, { signal: AbortSignal.timeout(30_000), headers: { "User-Agent": "vigia-start" }, redirect: "follow" });
       if (r.ok) return { ok: true };
+      if (r.status === 400 && s.pula400) return { ok: true, pular: true };
       ultimo = r.status >= 500 ? `Erro no servidor (${r.status})` : `Página respondeu com erro (${r.status})`;
     } catch (e) {
       ultimo = motivoDoErro(e);
@@ -108,6 +114,7 @@ let mudou = false;
 const resultados = await Promise.all(SERVICOS.map(async (s) => [s, await testar(s)]));
 const foraAgora = resultados.filter(([, r]) => !r.ok).map(([s]) => s.nome);
 for (const [s, r] of resultados) {
+  if (r.pular) continue; // serviço ainda não publicado do outro lado
   const antes = dados.estado[s.slug] ?? "ok";
   let depois = r.ok ? "ok" : "fora";
   const suspeita = dados.suspeitas[s.slug];
