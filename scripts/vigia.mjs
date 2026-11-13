@@ -111,7 +111,32 @@ dados.suspeitas ??= {}; // slug → { desde, motivo }: falhou UMA rodada; vira "
 dados.oscilacoes ??= []; // falhas de uma rodada só (não viraram incidente) — para diagnóstico, ~7 dias
 let mudou = false;
 
-const resultados = await Promise.all(SERVICOS.map(async (s) => [s, await testar(s)]));
+// Economia (13/11/2026): os serviços do Start Álbuns são testados numa chamada só (/api/saude devolve "servicos"),
+// em vez de uma chamada por serviço — eram ~2.000 chamadas por dia na Vercel só do vigia. Se a resposta não vier
+// (site fora, versão antiga sem "servicos"), cai no teste antigo, serviço por serviço, com as 3 tentativas.
+async function saudeDeUmaVez() {
+  for (let t = 1; t <= 2; t++) {
+    try {
+      const r = await fetch(`${SITE}/api/saude`, { signal: AbortSignal.timeout(45_000), headers: { "User-Agent": "vigia-start" } });
+      const j = await r.json(); // responde 503 com o mesmo corpo quando algum teste falha
+      if (j && typeof j.servicos === "object" && j.servicos) return j.servicos;
+      return null;
+    } catch {
+      if (t < 2) await espera(10_000);
+    }
+  }
+  return null;
+}
+const deUmaVez = await saudeDeUmaVez();
+const prefixo = `${SITE}/api/saude?s=`;
+async function testarServico(s) {
+  const nome = s.url.startsWith(prefixo) ? s.url.slice(prefixo.length) : null;
+  const pronto = nome && deUmaVez ? deUmaVez[nome] : null;
+  if (pronto && pronto.ok === true) return { ok: true };
+  if (nome && deUmaVez && !pronto && s.pula400) return { ok: true, pular: true };
+  return testar(s); // falhou ou não veio: confirma do jeito antigo antes de dar como queda
+}
+const resultados = await Promise.all(SERVICOS.map(async (s) => [s, await testarServico(s)]));
 const foraAgora = resultados.filter(([, r]) => !r.ok).map(([s]) => s.nome);
 for (const [s, r] of resultados) {
   if (r.pular) continue; // serviço ainda não publicado do outro lado
