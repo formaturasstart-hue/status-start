@@ -1,0 +1,26 @@
+// Teste da lógica do espaço das fotos (sem internet): node scripts/testar-disco.mjs
+import { juntar, nivelDoAviso } from "./disco.mjs";
+let ok = 0, falhou = 0;
+const c = (nome, cond, extra = "") => { cond ? ok++ : falhou++; console.log(`${cond ? "✔" : "✘"} ${nome}${cond ? "" : " — " + extra}`); };
+const L = (livre, cache = 55.8, vitrine = 7.2) => ({ livre_gb: livre, total_gb: 100, cache_gb: cache, limite_gb: 60, vitrine_gb: vitrine });
+let r = juntar(null, L(22.4), "2026-11-23T18:00:00Z");
+c("1ª leitura grava, sem aviso", r.gravar && !r.aviso && r.dados.historico.length === 1 && r.dados.alerta === "ok");
+let r2 = juntar(r.dados, L(22.3), "2026-11-23T18:05:00Z");
+c("5 min depois, mesmo dia: não regrava (sem commit)", !r2.gravar);
+r2 = juntar(r.dados, L(22.0), "2026-11-23T19:01:00Z");
+c("1 h depois: regrava e troca o ponto do dia (não acrescenta)", r2.gravar && r2.dados.historico.length === 1 && r2.dados.historico[0].livre_gb === 22);
+let r3 = juntar(r2.dados, L(21.5), "2026-11-24T04:00:00Z");
+c("dia novo (Brasília): acrescenta ponto", r3.gravar && r3.dados.historico.length === 2 && r3.dados.historico[1].dia === "2026-11-24", JSON.stringify(r3.dados.historico));
+let r4 = juntar(r3.dados, L(9.5), "2026-11-24T04:05:00Z");
+c("abaixo de 10 GB: aviso 'pouco' e grava na hora", r4.gravar && r4.aviso === "pouco");
+let r5 = juntar(r4.dados, L(9.4), "2026-11-24T04:10:00Z");
+c("continua abaixo de 10: não repete o e-mail", !r5.aviso);
+let r6 = juntar(r4.dados, L(4.5), "2026-11-24T04:10:00Z");
+c("abaixo de 5 GB: aviso 'crítico'", r6.aviso === "critico");
+c("crítico → 8 GB continua crítico (sem e-mail)", nivelDoAviso("critico", 8) === "critico");
+c("entre 10 e 15 mantém o nível", nivelDoAviso("pouco", 12) === "pouco" && nivelDoAviso("ok", 12) === "ok");
+let r7 = juntar(r6.dados, L(16), "2026-11-24T05:00:00Z");
+c("acima de 15 GB: aviso 'ok' (voltou)", r7.aviso === "ok" && r7.dados.alerta === "ok");
+let h = null; for (let i = 0; i < 100; i++) h = juntar(h, L(20), new Date(Date.UTC(2026, 0, 1 + i, 15)).toISOString()).dados;
+c("guarda só 90 dias", h.historico.length === 90);
+console.log(falhou ? `${falhou} falharam` : "Tudo certo.");

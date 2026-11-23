@@ -34,6 +34,16 @@ jobs:
           VIGIA_ENTREGADOR: ${{ vars.VIGIA_ENTREGADOR }}
           VIGIA_ATAS: ${{ vars.VIGIA_ATAS }}
         run: node scripts/vigia.mjs
+      # Espaço das fotos no servidor (23/11/2026): grava dados/disco.json e avisa com pouco espaço livre
+      - name: Espaço das fotos
+        if: ${{ inputs.teste != true }}
+        continue-on-error: true
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_REMETENTE: ${{ secrets.EMAIL_REMETENTE }}
+          ALERTA_EMAIL: ${{ secrets.ALERTA_EMAIL }}
+          VIGIA_ENTREGADOR: ${{ vars.VIGIA_ENTREGADOR }}
+        run: node scripts/disco.mjs
       - name: Salvar histórico
         run: |
           if [ -n "$(git status --porcelain dados)" ]; then

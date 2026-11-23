@@ -101,7 +101,23 @@ footer { margin-top: 40px; display: flex; justify-content: space-between; flex-w
 .dica.on { opacity: 1; transform: none; }
 .esqueleto .barras i { background: var(--superficie-2); animation: brilho 1.4s infinite; }
 @keyframes brilho { 50% { opacity: .5; } }
-@media (max-width: 560px) { .resumo { grid-template-columns: 1fr; } .queda { grid-template-columns: 1fr; gap: 4px; } .barras { gap: 1px; } .comp .st { margin-left: 0; width: 100%; } }
+/* espaço das fotos no servidor (23/11/2026) */
+.disco { border: 1px solid var(--borda); border-radius: 14px; background: var(--superficie); padding: 16px 18px 14px; }
+.disco .pilha { display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: var(--superficie-2); box-shadow: inset 0 0 0 1px var(--borda-2); }
+.disco .pilha i { display: block; height: 100%; min-width: 0; }
+.disco .c-cache { background: var(--medio); } .disco .c-vitrine { background: var(--suave); } .disco .c-resto { background: var(--sem); }
+.disco .numeros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+.disco .numeros div { border-left: 3px solid var(--borda-2); padding: 2px 0 2px 10px; }
+.disco .numeros .k { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--suave); font-weight: 600; }
+.disco .numeros .k i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+.disco .numeros b { display: block; font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.15; margin-top: 2px; }
+.disco .numeros small { display: block; font-size: 12px; color: var(--suave); line-height: 1.35; }
+.disco .livre-ok b { color: var(--ok); } .disco .livre-pouco b { color: var(--curta); } .disco .livre-critico b { color: #ff8a8f; }
+.disco .hist { display: flex; align-items: flex-end; gap: 2px; height: 46px; margin-top: 16px; }
+.disco .hist i { flex: 1 1 0; min-width: 0; border-radius: 2px 2px 0 0; background: var(--medio); opacity: .75; transition: opacity .15s; }
+.disco .hist i.sem { background: var(--sem); opacity: 1; height: 3px; }
+.disco .hist i:hover, .disco .hist i:focus { opacity: 1; }
+@media (max-width: 560px) { .resumo { grid-template-columns: 1fr; } .disco .numeros { grid-template-columns: 1fr; gap: 12px; } .queda { grid-template-columns: 1fr; gap: 4px; } .barras { gap: 1px; } .comp .st { margin-left: 0; width: 100%; } }
 @media (prefers-reduced-motion: reduce) { .estado .pulso, .esqueleto .barras i { animation: none; } * { transition: none !important; } }
 </style>
 </head>
@@ -124,6 +140,11 @@ footer { margin-top: 40px; display: flex; justify-content: space-between; flex-w
     <span><i style="background:var(--curta)"></i>Queda curta</span>
     <span><i style="background:var(--longa)"></i>Queda de 30 min ou mais</span>
     <span><i style="background:var(--sem)"></i>Sem dados</span>
+  </div>
+
+  <div id="disco-bloco" hidden>
+    <h2 class="rot">Espaço das fotos no servidor <span id="disco-quando"></span></h2>
+    <div class="disco" id="disco"></div>
   </div>
 
   <h2 class="rot">Resumo dos 90 dias</h2>
@@ -266,6 +287,51 @@ footer { margin-top: 40px; display: flex; justify-content: space-between; flex-w
       <div><b>${contLonga.n}</b><span>quedas de 30 min ou mais</span></div>`;
   }
 
+  // ---------- espaço das fotos no servidor (dados/disco.json, gravado pelo scripts/disco.mjs) ----------
+  const gb = (n) => (n == null ? "—" : Number(n).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + " GB");
+  async function carregarDisco() {
+    try {
+      const r = await fetch(`dados/disco.json?t=${Date.now()}`, { cache: "no-store" });
+      if (!r.ok) return; // ainda não existe: o bloco fica escondido
+      desenharDisco(await r.json());
+    } catch (e) { console.warn("[status] disco", e); }
+  }
+  function desenharDisco(d) {
+    if (!d || typeof d.livre_gb !== "number") return;
+    const total = d.total_gb || (d.livre_gb + d.cache_gb + (d.vitrine_gb || 0));
+    const vitrine = d.vitrine_gb || 0;
+    const resto = Math.max(0, total - d.livre_gb - d.cache_gb - vitrine);
+    const p = (n) => Math.max(0, Math.min(100, (n / total) * 100)).toFixed(2) + "%";
+    const nivel = d.alerta === "critico" ? "critico" : d.alerta === "pouco" ? "pouco" : "ok";
+    // histórico: um ponto por dia, últimos 90; altura = fotos (cache + vitrine)
+    const pontos = new Map((d.historico || []).map((h) => [h.dia, h]));
+    const hoje0 = inicioDoDia(Math.floor(Date.now() / 1000));
+    const dias = [];
+    for (let i = DIAS - 1; i >= 0; i--) { const t = hoje0 - i * DIA; dias.push({ t, h: pontos.get(isoBR(t)) }); }
+    const fotos = (h) => (h.cache_gb || 0) + (h.vitrine_gb || 0);
+    const maior = Math.max(1, ...dias.filter((x) => x.h).map((x) => fotos(x.h)));
+    const barras = dias.map(({ t, h }) => h
+      ? `<i tabindex="0" style="height:${Math.max(6, (fotos(h) / maior) * 100).toFixed(1)}%" data-dica="${dataBR(t)}|Fotos: ${gb(fotos(h))}|Livre no disco: ${gb(h.livre_gb)}"></i>`
+      : `<i class="sem" data-dica="${dataBR(t)}|Sem dados|"></i>`).join("");
+    // quanto a vitrine cresceu nos últimos 30 dias (o cache fica parado perto do limite)
+    const hist = (d.historico || []).filter((h) => h.vitrine_gb != null);
+    const ref = hist.find((h) => Date.parse(h.dia) >= Date.now() - 30 * 864e5);
+    const cresceu = ref && hist.length > 1 ? vitrine - ref.vitrine_gb : null;
+    $("disco").innerHTML = `
+      <div class="pilha" role="img" aria-label="Disco do servidor: ${gb(d.cache_gb)} de fotos do Drive, ${gb(vitrine)} de vitrine, ${gb(resto)} do resto do servidor, ${gb(d.livre_gb)} livres de ${gb(total)}">
+        <i class="c-cache" style="width:${p(d.cache_gb)}"></i><i class="c-vitrine" style="width:${p(vitrine)}"></i><i class="c-resto" style="width:${p(resto)}"></i>
+      </div>
+      <div class="numeros">
+        <div><span class="k"><i class="c-cache"></i>Fotos do Drive</span><b>${gb(d.cache_gb)}</b><small>de ${gb(d.limite_gb)} · cópia para as galerias abrirem rápido; apaga sozinha as menos vistas</small></div>
+        <div><span class="k"><i class="c-vitrine"></i>Vitrine das entregas</span><b>${d.vitrine_gb == null ? "—" : gb(vitrine)}</b><small>${d.vitrine_gb == null ? "ainda não medida (atualizar o entregador)" : `miniaturas com logo · cresce a cada entrega${cresceu != null ? ` (+${gb(Math.max(0, cresceu))} em 30 dias)` : ""}`}</small></div>
+        <div class="livre-${nivel}"><span class="k"><i style="box-shadow:inset 0 0 0 1px var(--borda-2)"></i>Livre no disco</span><b>${gb(d.livre_gb)}</b><small>de ${gb(total)} · aviso por e-mail abaixo de 10 GB${resto ? ` · sistema e outros: ${gb(resto)}` : ""}</small></div>
+      </div>
+      <div class="hist" aria-label="Fotos no servidor nos últimos 90 dias">${barras}</div>
+      <div class="rodape-barra"><span>${curtaBR(hoje0 - (DIAS - 1) * DIA)}</span><span>fotos no servidor, por dia</span><span>hoje</span></div>`;
+    $("disco-quando").textContent = d.em ? `medido às ${horaBR(Math.floor(Date.parse(d.em) / 1000))}` : "";
+    $("disco-bloco").hidden = false;
+  }
+
   // ---------- dica ao passar o mouse / tocar ----------
   const dica = $("dica");
   function mostrar(el) {
@@ -282,10 +348,16 @@ footer { margin-top: 40px; display: flex; justify-content: space-between; flex-w
   lista.addEventListener("focusin", (e) => { const i = e.target.closest("[data-dica]"); if (i) mostrar(i); });
   lista.addEventListener("mouseout", () => dica.classList.remove("on"));
   lista.addEventListener("focusout", () => dica.classList.remove("on"));
+  const discoEl = $("disco");
+  discoEl.addEventListener("mouseover", (e) => { const i = e.target.closest("[data-dica]"); if (i) mostrar(i); });
+  discoEl.addEventListener("focusin", (e) => { const i = e.target.closest("[data-dica]"); if (i) mostrar(i); });
+  discoEl.addEventListener("mouseout", () => dica.classList.remove("on"));
+  discoEl.addEventListener("focusout", () => dica.classList.remove("on"));
   addEventListener("scroll", () => dica.classList.remove("on"), { passive: true });
 
   carregar();
-  setInterval(carregar, 5 * 60 * 1000); // atualiza sozinho a cada 5 min
+  carregarDisco();
+  setInterval(() => { carregar(); carregarDisco(); }, 5 * 60 * 1000); // atualiza sozinho a cada 5 min
 })();
 </script>
 </body>
