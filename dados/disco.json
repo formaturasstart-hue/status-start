@@ -1,0 +1,17 @@
+{
+  "em": "2026-11-23T18:37:52.000Z",
+  "livre_gb": 21.1,
+  "total_gb": 102.89,
+  "cache_gb": 56.74,
+  "limite_gb": 60,
+  "vitrine_gb": 3.38,
+  "alerta": "ok",
+  "historico": [
+    {
+      "dia": "2026-11-23",
+      "cache_gb": 56.74,
+      "vitrine_gb": 3.38,
+      "livre_gb": 21.1
+    }
+  ]
+}
