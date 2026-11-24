@@ -1,6 +1,6 @@
 {
   "inicio": "2026-10-19T00:59:48.644Z",
-  "ultima_verificacao": "2026-11-24T21:45:24.150Z",
+  "ultima_verificacao": "2026-11-24T21:50:23.091Z",
   "estado": {
     "galeria": "ok",
     "site": "ok",
@@ -483,20 +483,7 @@
       "motivo": "Erro no servidor (503)"
     }
   ],
-  "suspeitas": {
-    "galeria": {
-      "desde": "2026-11-24T21:45:24.150Z",
-      "motivo": "Erro no servidor (503)"
-    },
-    "fotos": {
-      "desde": "2026-11-24T21:45:24.150Z",
-      "motivo": "Erro no servidor (503)"
-    },
-    "entregador": {
-      "desde": "2026-11-24T21:45:24.150Z",
-      "motivo": "Erro no servidor (503)"
-    }
-  },
+  "suspeitas": {},
   "oscilacoes": [
     {
       "servico": "entregador",
@@ -732,6 +719,21 @@
       "servico": "atas",
       "em": "2026-11-24T19:50:23.891Z",
       "motivo": "Sem resposta: tempo esgotado na conexão (UND_ERR_CONNECT_TIMEOUT)"
+    },
+    {
+      "servico": "galeria",
+      "em": "2026-11-24T21:45:24.150Z",
+      "motivo": "Erro no servidor (503)"
+    },
+    {
+      "servico": "fotos",
+      "em": "2026-11-24T21:45:24.150Z",
+      "motivo": "Erro no servidor (503)"
+    },
+    {
+      "servico": "entregador",
+      "em": "2026-11-24T21:45:24.150Z",
+      "motivo": "Erro no servidor (503)"
     }
   ]
 }
