@@ -1,6 +1,6 @@
 {
   "inicio": "2026-10-19T00:59:48.644Z",
-  "ultima_verificacao": "2026-11-27T11:00:33.539Z",
+  "ultima_verificacao": "2026-11-27T11:10:16.193Z",
   "estado": {
     "galeria": "ok",
     "site": "ok",
@@ -485,16 +485,6 @@
   ],
   "suspeitas": {},
   "oscilacoes": [
-    {
-      "servico": "entregador",
-      "em": "2026-11-20T11:05:22.294Z",
-      "motivo": "Sem resposta: tempo esgotado na conexão (UND_ERR_CONNECT_TIMEOUT)"
-    },
-    {
-      "servico": "atas",
-      "em": "2026-11-20T11:05:22.294Z",
-      "motivo": "Sem resposta: tempo esgotado na conexão (UND_ERR_CONNECT_TIMEOUT)"
-    },
     {
       "servico": "galeria",
       "em": "2026-11-20T15:10:24.581Z",
