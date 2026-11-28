@@ -1,8 +1,8 @@
 {
-  "em": "2026-11-28T15:00:34.077Z",
-  "livre_gb": 21.5,
+  "em": "2026-11-28T16:00:34.620Z",
+  "livre_gb": 21.26,
   "total_gb": 102.89,
-  "cache_gb": 56.4,
+  "cache_gb": 56.63,
   "limite_gb": 60,
   "vitrine_gb": 3.02,
   "alerta": "ok",
@@ -39,9 +39,9 @@
     },
     {
       "dia": "2026-11-28",
-      "cache_gb": 56.4,
+      "cache_gb": 56.63,
       "vitrine_gb": 3.02,
-      "livre_gb": 21.5
+      "livre_gb": 21.26
     }
   ]
 }
